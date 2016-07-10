@@ -1,5 +1,7 @@
-apply plugin: "com.android.library"
-apply from: "coverage.gradle"
+apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
+apply plugin: 'com.jfrog.bintray'
+apply from: 'coverage.gradle'
 
 android {
     compileSdkVersion 23
@@ -37,4 +39,56 @@ dependencies {
     testCompile "org.mockito:mockito-core:1.+"
 
     compile "com.android.support:support-v4:23.3.0"
+}
+
+group = 'org.c0d3scr1b3r'
+version = '1.0.0'
+
+install {
+    repositories.mavenInstaller {
+        pom.project {
+            name 'JobDispatcher'
+            description 'a wrapper around android\'s jobscheduler that extends it to older version (pre 5.0)'
+            url 'https://github.com/eyal-rounds/firebase-jobdispatcher-android'
+
+            packaging 'aar'
+
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+            scm {
+                connection 'https://github.com/eyal-rounds/firebase-jobdispatcher-android.git'
+                url 'https://github.com/eyal-rounds/firebase-jobdispatcher-android'
+
+            }
+            developers {
+                developer {
+                    name 'c0d3sc1b3r'
+                }
+            }
+        }
+    }
+}
+
+
+bintray {
+    user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
+    key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
+    configurations = ['archives']
+    pkg {
+        repo = 'maven'
+        name = 'firebase-jobdispatcher-android'
+        licenses = ['Apache-2.0']
+        vcsUrl = 'https://github.com/eyal-rounds/firebase-jobdispatcher-android.git'
+        labels = ['firebase','jobDispatcher','android']
+        publicDownloadNumbers = true
+        version {
+            name = '1.0.0'
+            desc = 'firebase jobDispatcher for android'
+        }
+    }
 }
