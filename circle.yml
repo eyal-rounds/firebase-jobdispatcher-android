@@ -5,15 +5,14 @@ machine:
     BRANCH_WITH_COUNTER: develop
 dependencies:
   pre:
-    - echo y | android update sdk --no-ui --all --filter "build-tools-23.0.3"
-    - echo y | android update sdk --no-ui --all --filter "extra-android-m2repository,extra-google-m2repository,extra-google-google_play_services"
   # this will override default behavior since default behaviour has a bug we'll keep that from now on.
   #we get gradle dependencies from mavencentral\jcenter and cache it in the container
   override:
     - ./gradlew dependencies
 test:
   override:
-    - ./gradlew 
+      - if git log -1 --pretty=%s|grep "\[ci publish\]" >/dev/null 2>&1 ; then  ./gradlew assembleRelease -PupdateVersion=1; else ./gradlew assembleRelease; fi;
+      - if git log -1 --pretty=%s|grep "\[ci publish\]" >/dev/null 2>&1 ; then ./gradlew bintrayUpload; git commit -m "updating version by CI" && git push; fi
 checkout:
   #this is needed on circleci for projects which are using submodules ,circle ci by default doesn't checkout\updates
   # submodules

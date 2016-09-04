@@ -1,8 +1,11 @@
-apply plugin: 'com.android.library'
-apply plugin: 'com.jfrog.bintray'
 apply plugin: 'maven-publish'
+apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.android.library'
 //apply from: 'coverage.gradle'
 
+
+Properties versionProperties = readVersionProperties()
+updateProperties(versionProperties)
 
 android {
     compileSdkVersion 23
@@ -11,8 +14,8 @@ android {
     defaultConfig {
         minSdkVersion 9
         targetSdkVersion 23
-        versionCode 1
-        versionName "1.0.1"
+        versionCode getVersionCode(versionProperties)
+        versionName getVersionName(versionProperties)
     }
 
     buildTypes {
@@ -49,14 +52,12 @@ dependencies {
     compile "com.android.support:support-v4:23.3.0"
 }
 
-publishing {
-    publications {
+publishing.publications {
         aar(MavenPublication) {
             groupId = 'org.c0d3scr1b3r'
             artifactId "${project.name}"
             version = android.defaultConfig.versionName
             artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
-//            artifact androidJavadocsJar
             artifact androidSourcesJar
             pom.withXml {
                 def root = asNode()
@@ -78,7 +79,6 @@ publishing {
                 }
             }
         }
-    }
 }
 
 
@@ -105,5 +105,59 @@ bintray {
             desc = 'firebase jobDispatcher for android'
         }
     }
+}
+
+def int getVersionCode(Properties props){
+    String codeAsString = props.get("version.code")
+    return codeAsString as int
+}
+
+def String getVersionName(Properties props){
+    return props.get("version.name")
+}
+
+def Properties readVersionProperties(){
+    Properties properties = new Properties()
+    properties.load(new FileInputStream("version.properties"))
+    println("version properties successfully loaded")
+    properties.each {
+        println("--- ${it}")
+    }
+    return properties
+}
+
+def void updateProperties(Properties props){
+    if( 'updateVersion' in project.properties ){
+        updateVersionName(props)
+        updateVersionCode(props)
+        props.store(new FileOutputStream("version.properties"),"")
+    }else{
+        println("no 'updateVersion' in project properties, will not update version")
+    }
+}
+
+def void updateVersionName(Properties props){
+    String asString = props["version.name"]
+    def asList = asString.split("\\.")
+    int idx = asList.size() - 1
+    boolean done = false
+    int carry = 0
+    while( ! done && idx >= 0 ){
+        int asNumber = asList[idx] as int
+        int temp = asNumber + 1 + carry
+        asNumber = temp % 10
+        carry = temp / 10
+        done = carry == 0
+        asList[idx] = (asNumber as String)
+        idx--
+    }
+    props["version.name"] = asList.join(".")
+    println("new version name set: ${props['version.name']}")
+}
+
+def void updateVersionCode(Properties props){
+    int versionCode = props["version.code"] as int
+    props["version.code"] = (versionCode + 1) as String
+    println("new versionCode set: ${props['versionCode']}")
 }
 
