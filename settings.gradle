@@ -1,3 +1,2 @@
 include ':jobdispatcher'
 include ':testapp'
-rootProject.name = 'firebase-jobdispatcher-android'

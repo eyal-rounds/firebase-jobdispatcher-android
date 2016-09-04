@@ -1,7 +1,8 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
 apply plugin: 'com.jfrog.bintray'
-apply from: 'coverage.gradle'
+apply plugin: 'maven-publish'
+//apply from: 'coverage.gradle'
+
 
 android {
     compileSdkVersion 23
@@ -11,7 +12,7 @@ android {
         minSdkVersion 9
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.1"
     }
 
     buildTypes {
@@ -24,14 +25,21 @@ android {
     }
 }
 
-task javadoc(type: Javadoc) {
+
+task androidJavadocs(type: Javadoc) {
     source = android.sourceSets.main.java.srcDirs
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
-    destinationDir = file("../javadoc/")
-    failOnError false
 }
 
-task aar(dependsOn: assembleRelease)
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    classifier = 'javadoc'
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
 
 dependencies {
     testCompile "junit:junit:4.12"
@@ -41,33 +49,32 @@ dependencies {
     compile "com.android.support:support-v4:23.3.0"
 }
 
-group = 'org.c0d3scr1b3r'
-version = '1.0.0'
-
-install {
-    repositories.mavenInstaller {
-        pom.project {
-            name 'JobDispatcher'
-            description 'a wrapper around android\'s jobscheduler that extends it to older version (pre 5.0)'
-            url 'https://github.com/eyal-rounds/firebase-jobdispatcher-android'
-
-            packaging 'aar'
-
-            licenses {
-                license {
-                    name 'The Apache Software License, Version 2.0'
-                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    distribution 'repo'
-                }
-            }
-            scm {
-                connection 'https://github.com/eyal-rounds/firebase-jobdispatcher-android.git'
-                url 'https://github.com/eyal-rounds/firebase-jobdispatcher-android'
-
-            }
-            developers {
-                developer {
-                    name 'c0d3sc1b3r'
+publishing {
+    publications {
+        aar(MavenPublication) {
+            groupId = 'org.c0d3scr1b3r'
+            artifactId "${project.name}"
+            version = android.defaultConfig.versionName
+            artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
+//            artifact androidJavadocsJar
+            artifact androidSourcesJar
+            pom.withXml {
+                def root = asNode()
+                def license = root.appendNode('licenses').appendNode('license')
+                license.appendNode('name', 'The Apache Software License, Version 2.0')
+                license.appendNode('url', 'http://www.apache.org/licenses/LICENSE-2.0.txt')
+                license.appendNode('distribution', 'repo')
+                def scm = root.appendNode('scm')
+                scm.appendNode('connection', 'https://github.com/eyal-rounds/firebase-jobdispatcher-android.git')
+                scm.appendNode('url', 'https://github.com/eyal-rounds/firebase-jobdispatcher-android')
+                root.appendNode('developers').appendNode('developer').appendNode('name', 'c0d3sc1b3r')
+                def dependencies = root.appendNode('dependencies')
+                configurations.getByName("_releaseCompile").
+                        getResolvedConfiguration().getFirstLevelModuleDependencies().each {
+                    def dependency = dependencies.appendNode('dependency')
+                    dependency.appendNode('groupId', it.moduleGroup)
+                    dependency.appendNode('artifactId', it.moduleName)
+                    dependency.appendNode('version', it.moduleVersion)
                 }
             }
         }
@@ -78,17 +85,25 @@ install {
 bintray {
     user = project.hasProperty('bintrayUser') ? project.property('bintrayUser') : System.getenv('BINTRAY_USER')
     key = project.hasProperty('bintrayApiKey') ? project.property('bintrayApiKey') : System.getenv('BINTRAY_API_KEY')
-    configurations = ['archives']
+    if( user == null ){
+        println("no user defined!!!")
+    }
+    if( key == null ){
+        println("no key defined!!!")
+    }
+    publications = ['aar']
+    publish = true
     pkg {
         repo = 'maven'
         name = 'firebase-jobdispatcher-android'
         licenses = ['Apache-2.0']
         vcsUrl = 'https://github.com/eyal-rounds/firebase-jobdispatcher-android.git'
-        labels = ['firebase','jobDispatcher','android']
         publicDownloadNumbers = true
+
         version {
-            name = '1.0.0'
+            name = android.defaultConfig.versionName
             desc = 'firebase jobDispatcher for android'
         }
     }
 }
+

@@ -1,0 +1,22 @@
+machine:
+  java:
+    version: oraclejdk8
+  environment:
+    BRANCH_WITH_COUNTER: develop
+dependencies:
+  pre:
+    - echo y | android update sdk --no-ui --all --filter "build-tools-23.0.3"
+    - echo y | android update sdk --no-ui --all --filter "extra-android-m2repository,extra-google-m2repository,extra-google-google_play_services"
+  # this will override default behavior since default behaviour has a bug we'll keep that from now on.
+  #we get gradle dependencies from mavencentral\jcenter and cache it in the container
+  override:
+    - ./gradlew dependencies
+test:
+  override:
+    - ./gradlew 
+checkout:
+  #this is needed on circleci for projects which are using submodules ,circle ci by default doesn't checkout\updates
+  # submodules
+  post:
+    - git submodule sync
+    - git submodule update --init
