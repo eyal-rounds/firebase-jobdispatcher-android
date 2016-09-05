@@ -1,18 +1,16 @@
 machine:
   java:
     version: oraclejdk8
-  environment:
-    BRANCH_WITH_COUNTER: develop
 dependencies:
   pre:
-  # this will override default behavior since default behaviour has a bug we'll keep that from now on.
-  #we get gradle dependencies from mavencentral\jcenter and cache it in the container
+    - git config --global user.email $GIT_USER_EMAIL && git config --global user.name $GIT_USER_NAME
   override:
     - ./gradlew dependencies
 test:
   override:
-      - if git log -1 --pretty=%s|grep "\[ci publish\]" >/dev/null 2>&1 ; then  ./gradlew assembleRelease -PupdateVersion=1; else ./gradlew assembleRelease; fi;
-      - if git log -1 --pretty=%s|grep "\[ci publish\]" >/dev/null 2>&1 ; then ./gradlew bintrayUpload; git commit -m "updating version by CI" && git push; fi
+      - echo export IS_PUBLISH=$(git log -1 --pretty=%s|grep "\[ci publish\]" >/dev/null 2>&1; echo $?) >> ~/.circlerc
+      - if [[ $IS_PUBLISH -eq 0 ]]; then  ./gradlew assembleRelease -PupdateVersion=1;else ./gradlew assembleRelease;fi
+      - if [[ $IS_PUBLISH -eq 0 ]]; then ./gradlew bintrayUpload;(git commit -a -m "updating version by CI" && git push);else echo "## will not publish this time";fi
 checkout:
   #this is needed on circleci for projects which are using submodules ,circle ci by default doesn't checkout\updates
   # submodules
