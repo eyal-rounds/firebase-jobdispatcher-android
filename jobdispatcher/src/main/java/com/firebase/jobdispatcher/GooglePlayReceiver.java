@@ -158,8 +158,15 @@ public final class GooglePlayReceiver extends ExternalReceiver {
 
             JobCallback callback = map.remove(js.getTag());
             if (callback != null) {
-                Log.i(TAG, "sending jobFinished for " + js.getTag() + " = " + result);
-                callback.jobFinished(result);
+                try {
+                    Log.i(TAG, "sending jobFinished for " + js.getTag() + " = " + result);
+                    callback.jobFinished(result);
+                }
+                catch (Exception e){
+                    e.printStackTrace();
+                    Log.w(TAG,"Exception "+e+", when trying to call jobFinished on GooglePlayJobCallback message:"+e
+                        .getMessage());
+                }
             }
 
             if (map.isEmpty()) {

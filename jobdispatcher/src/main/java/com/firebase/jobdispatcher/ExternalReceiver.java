@@ -60,7 +60,12 @@ import com.firebase.jobdispatcher.JobService.JobResult;
 
         connection.onJobFinished(jobParameters);
         if (connection.shouldDie()) {
-            unbindService(connection);
+            try {
+                unbindService(connection);
+            } catch (IllegalArgumentException e) {
+                e.printStackTrace();
+                Log.w(TAG, e.getMessage());
+            }
             synchronized (serviceConnections) {
                 serviceConnections.remove(connection);
             }
