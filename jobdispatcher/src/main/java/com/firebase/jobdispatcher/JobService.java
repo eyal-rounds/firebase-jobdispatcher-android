@@ -109,8 +109,12 @@ public abstract class JobService extends Service {
 
         boolean moreWork = onStartJob(job);
         if (!moreWork) {
+            JobCallback jobCallback;
             synchronized (runningJobs) {
-                runningJobs.remove(job.getTag()).sendResult(RESULT_SUCCESS);
+                jobCallback = runningJobs.remove(job.getTag());
+            }
+            if(jobCallback != null) {
+                jobCallback.sendResult(RESULT_SUCCESS);
             }
         }
     }
