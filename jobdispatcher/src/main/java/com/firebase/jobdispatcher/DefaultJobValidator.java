@@ -16,6 +16,8 @@
 
 package com.firebase.jobdispatcher;
 
+import static com.firebase.jobdispatcher.RetryStrategy.RETRY_POLICY_EXPONENTIAL;
+import static com.firebase.jobdispatcher.RetryStrategy.RETRY_POLICY_LINEAR;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,8 +33,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 
-import static com.firebase.jobdispatcher.RetryStrategy.RETRY_POLICY_EXPONENTIAL;
-import static com.firebase.jobdispatcher.RetryStrategy.RETRY_POLICY_LINEAR;
 
 /**
  * Validates Jobs according to some safe standards.
