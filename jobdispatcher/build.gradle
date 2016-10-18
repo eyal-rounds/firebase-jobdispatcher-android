@@ -50,19 +50,10 @@ dependencies {
     compile "com.google.android.gms:play-services-gcm:9.0.0"
 }
 
-def getArtifactId(){
-    if( 'artifactId' in project.properties){
-        return project.artifactId
-    } else {
-        return project.name
-    }
-}
-
-
 publishing.publications {
         aar(MavenPublication) {
             groupId = 'org.c0d3scr1b3r'
-            artifactId "${getArtifactId()}"
+            artifactId "jpbdispatcher-gcm"
             version = android.defaultConfig.versionName
             artifact "${project.buildDir}/outputs/aar/${project.name}-release.aar"
             artifact androidSourcesJar
