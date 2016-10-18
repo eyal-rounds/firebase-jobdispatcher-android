@@ -9,8 +9,8 @@ dependencies:
 test:
   override:
       - echo export IS_PUBLISH=$(git log -1 --pretty=%s|grep "\[ci publish\]" >/dev/null 2>&1; echo $?) >> ~/.circlerc
-      - if [[ $IS_PUBLISH -eq 0 ]]; then  ./gradlew assembleRelease -PupdateVersion=1;else ./gradlew assembleRelease;fi
-      - if [[ $IS_PUBLISH -eq 0 ]]; then ./gradlew bintrayUpload;(git commit -a -m "updating version by CI" && git push);else echo "## will not publish this time";fi
+      - if [[ $IS_PUBLISH -eq 0 ]]; then  ./gradlew assembleRelease -PupdateVersion=1;else ./gradlew assembleRelease ;fi
+      - if [[ $IS_PUBLISH -eq 0 ]]; then ./gradlew bintrayUpload -PartifactId=jobdispatcher-gcm;(git commit -a -m "updating version by CI" && git push rounds);else echo "## will not publish this time";fi
 checkout:
   #this is needed on circleci for projects which are using submodules ,circle ci by default doesn't checkout\updates
   # submodules
